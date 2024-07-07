@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { Text, View, StyleSheet, FlatList, TouchableOpacity, Image } from 'react-native';
 
-const contacts = [
+const initialContacts = [
   { id: '1', name: 'Tanaya Salsabila A.', phone: '+62 857-9502-4030', photo: require('../assets/naya.jpg') },
   { id: '2', name: 'Gerie Panca Sukma', phone: '987654321', photo: require('../assets/geri.jpg') },
   { id: '3', name: 'Delinda Mega Putri', phone: '123123123', photo: require('../assets/delin.jpg') },
@@ -13,18 +13,41 @@ const contacts = [
 ];
 
 const Home = ({ navigation }) => {
+  const [contacts, setContacts] = useState(initialContacts);
+
+  const handlePress = useCallback((contact) => {
+    navigation.navigate('Detail', { contact });
+  }, [navigation]);
+
+  const handleEditPress = useCallback((contact) => {
+    navigation.navigate('Edit', { contact, updateContact });
+  }, [navigation, updateContact]);
+
+  const updateContact = useCallback((updatedContact) => {
+    setContacts((prevContacts) =>
+      prevContacts.map((contact) =>
+        contact.id === updatedContact.id ? updatedContact : contact
+      )
+    );
+  }, []);
+
   return (
     <View style={styles.container}>
       <FlatList
         data={contacts}
-        keyExtractor={item => item.id}
+        keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.contactItem}
-            onPress={() => navigation.navigate('Detail', { contact: item })}
+            onPress={() => handlePress(item)}
           >
             <Image source={item.photo} style={styles.contactPhoto} />
-            <Text style={styles.contactName}>{item.name}</Text>
+            <View style={styles.contactInfo}>
+              <Text style={styles.contactName}>{item.name}</Text>
+              <TouchableOpacity onPress={() => handleEditPress(item)}>
+                <Text style={styles.editButton}>Edit</Text>
+              </TouchableOpacity>
+            </View>
           </TouchableOpacity>
         )}
       />
@@ -50,8 +73,17 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     marginRight: 15,
   },
+  contactInfo: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   contactName: {
     fontSize: 18,
+  },
+  editButton: {
+    color: 'blue',
   },
 });
 
